@@ -3,7 +3,6 @@ import { useAuthContext } from '../auth/AuthContext';
 import Home from '../pages/home'
 import { AuthRouter } from './AuthRouter'
 import { PrivateRoute } from './PrivateRoute';
-
 export const AppRouter = () => {
   const { user } = useAuthContext();
 
@@ -17,5 +16,5 @@ export const AppRouter = () => {
         </Switch>
       </Router>
     </div>
-  )
-}
+  );
+};

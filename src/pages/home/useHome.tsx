@@ -1,69 +1,99 @@
-import { useEffect, useReducer } from "react";
+import { useEffect, useState } from "react";
 import { useHistory } from "react-router";
 import { useAuthContext } from "../../auth/AuthContext";
-import { EActionAuth, ETodoType } from "../../types/types";
-
-interface IAction {
-  type: ETodoType;
-  payload: any
-};
-
+import { EActionAuth } from "../../types/types";
+import gql from "graphql-tag";
+import { useQuery, useMutation } from "react-apollo";
 export interface ITask {
-  ID?: string;
+  id?: string;
   task: string;
   isReady: boolean;
 }
 
-const todoReducer = (state: ITask[] = [], action: IAction) => {
-  switch (action.type) {
-    case ETodoType.ADD:
-      return [...state, action.payload];
+const TODO_LIST_QUERY = gql`
+ query tasks {
+  tasksList(orderBy: [createdAt_ASC]) {
+     items {
+       id
+       task
+       isReady
+     }
+   }
+ }
+`;
 
-    case ETodoType.DELETE:
-      return state.filter((todo: ITask) => todo.ID !== action.payload);
-
-    case ETodoType.TOGGLE:
-      return state.map((todo: ITask) =>
-        (todo.ID === action.payload)
-          ? { ...todo, isReady: !todo.isReady }
-          : todo
-      );
-
-    default:
-      return state;
+const CREATE_TODO_MUTATION = gql`
+  mutation taskCreate($isReady: Boolean!, $task: String!) {
+    taskCreate(data: {isReady: $isReady, task: $task}) {
+      task
+      isReady
+    }
   }
-};
+`;
+
+const IS_READY_TODO_MUTATION = gql`
+  mutation taskUpdate($id: ID!) {
+    taskUpdate(data: {isReady: true}, filter: {id: $id}) {
+      id
+    }
+  }
+`;
+
+const IS_NOT_READY_TODO_MUTATION = gql`
+  mutation taskUpdate($id: ID!) {
+    taskUpdate(data: {isReady: false}, filter: {id: $id}) {
+      id
+    }
+  }
+`;
+
+const DELETE_TODO_MUTATION = gql`
+  mutation taskDelete($id: ID!) {
+    taskDelete(data: { id: $id }) {
+      success
+    }
+  }
+`;
 
 const useHome = () => {
   const { dispatch } = useAuthContext();
   const history = useHistory();
+  const { data } = useQuery(TODO_LIST_QUERY);
+  const [mutateAddTodo] = useMutation(CREATE_TODO_MUTATION, {
+    refetchQueries: [{ query: TODO_LIST_QUERY }]
+  });
+  const [mutateIsReadyTodo] = useMutation(IS_READY_TODO_MUTATION, {
+    refetchQueries: [{ query: TODO_LIST_QUERY }]
+  });
+  const [mutateIsNotReadyTodo] = useMutation(IS_NOT_READY_TODO_MUTATION, {
+    refetchQueries: [{ query: TODO_LIST_QUERY }]
+  });
+  const [mutateDeleteTodo] = useMutation(DELETE_TODO_MUTATION, {
+    refetchQueries: [{ query: TODO_LIST_QUERY }]
+  });
 
-  const [todos, changeTodo] = useReducer(todoReducer, []);
+  const [todos, setTodos] = useState<ITask[]>([]);
 
   useEffect(() => {
-    localStorage.setItem('todos', JSON.stringify(todos));
-  }, [todos]);
-
+    if (data) {
+      setTodos(data?.tasksList?.items);
+    }
+  }, [data]);
 
   const handleDelete = (todoId: string) => {
-    changeTodo({
-      type: ETodoType.DELETE,
-      payload: todoId
-    });
+    mutateDeleteTodo({ variables: { id: todoId } })
   };
 
-  const handleToggle = (todoId: string) => {
-    changeTodo({
-      type: ETodoType.TOGGLE,
-      payload: todoId
-    });
+  const handleToggle = (todo: ITask) => {
+    if (todo.isReady) {
+      mutateIsNotReadyTodo({ variables: { id: todo.id } });
+      return;
+    }
+    mutateIsReadyTodo({ variables: { id: todo.id } });
   };
 
   const handleAddTodo = (newTodo: ITask) => {
-    changeTodo({
-      type: ETodoType.ADD,
-      payload: newTodo
-    });
+    mutateAddTodo({ variables: newTodo });
   };
 
   const handleLogOut = () => {

@@ -11,7 +11,7 @@ export const TodoList: FC<ITodoList> = ({ todos, handleDelete, handleToggle }) =
         {
           todos.map((todo) => (
             <TodoListItem
-              key={todo.ID}
+              key={todo.id}
               todo={todo}
               handleDelete={handleDelete}
               handleToggle={handleToggle}
@@ -25,5 +25,5 @@ export const TodoList: FC<ITodoList> = ({ todos, handleDelete, handleToggle }) =
 interface ITodoList {
   todos: ITask[],
   handleDelete: (id: string) => void,
-  handleToggle: (id: string) => void,
+  handleToggle: (todo: ITask) => void,
 };

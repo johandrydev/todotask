@@ -14,7 +14,7 @@ const AddTask: FC<IAddTask> = ({ submit }) => {
     }
 
     const newTodo: ITask = {
-      ID: new Date().getTime().toString(),
+      id: new Date().getTime().toString(),
       task: values.task,
       isReady: false
     };

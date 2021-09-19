@@ -11,14 +11,14 @@ export const TodoListItem: FC<ITodoListItem> = ({ todo, handleDelete, handleTogg
       >
         <span
           className={`task-item lead ${todo.isReady && 'complete'}`}
-          onClick={() => handleToggle((todo.ID as string))}
+          onClick={() => handleToggle(todo)}
         >
           {todo.task}
         </span>
         <div className="d-flex align-items-center">
           <button
             className="btn btn-danger btn-sm"
-            onClick={() => handleDelete((todo.ID as string))}
+            onClick={() => handleDelete((todo.id as string))}
           >
             Delete
           </button>
@@ -30,5 +30,5 @@ export const TodoListItem: FC<ITodoListItem> = ({ todo, handleDelete, handleTogg
 interface ITodoListItem {
   todo: ITask,
   handleDelete: (id: string) => void,
-  handleToggle: (id: string) => void,
+  handleToggle: (todo: ITask) => void,
 };
