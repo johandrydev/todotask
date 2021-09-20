@@ -18,7 +18,7 @@ const useLogin = () => {
     dispatch({
       type: EActionAuth.LOGIN,
       payload: {
-        name: 'Johandry'
+        name: values.username
       }
     });
     history.replace('/');
